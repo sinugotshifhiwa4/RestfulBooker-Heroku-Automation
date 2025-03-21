@@ -36,6 +36,14 @@ public class BookingEndpoints {
         );
     }
 
+    public Response getAllBooking(){
+        return httpClient.sendGetRequest(
+                Routes.getBookingsUrl(),
+                null,
+                null
+        );
+    }
+
     public Response updateBookingById(Object payload, int id, String token){
         return httpClient.sendPutRequest(
                 Routes.getBookingUrl(id),
@@ -49,6 +57,14 @@ public class BookingEndpoints {
         return httpClient.sendPatchRequest(
                 Routes.getBookingUrl(id),
                 payload,
+                null,
+                createAuthHeader(token)
+        );
+    }
+
+    public Response deleteBookingById(int id, String token){
+        return httpClient.sendDeleteRequest(
+                Routes.getBookingUrl(id),
                 null,
                 createAuthHeader(token)
         );

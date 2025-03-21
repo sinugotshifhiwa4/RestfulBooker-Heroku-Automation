@@ -24,13 +24,13 @@ public class BookingTests {
 
 
     @BeforeMethod
-    public void setup(){
+    public void setup() {
         TestContextStore.initializeContext(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId());
     }
 
     @Test(groups = {"sanity"}, priority = 1)
-    public void createAuthenticationToken() throws Exception {
-        try{
+    public void createAuthenticationToken() {
+        try {
             // Send auth request
             Response response = bookingEndpoints.generateAuthenticationToken(
                     AuthenticationBuilder.createAuthenticationRequest(
@@ -56,8 +56,8 @@ public class BookingTests {
     }
 
     @Test(groups = {"sanity"}, priority = 2)
-    public void createNewBooking() throws Exception {
-        try{
+    public void createNewBooking() {
+        try {
             // Send new booking request
             Response response = bookingEndpoints.createBooking(
                     BookingBuilder.createBookingRequest()
@@ -78,8 +78,8 @@ public class BookingTests {
     }
 
     @Test(groups = {"sanity"}, priority = 3, dependsOnMethods = {"createNewBooking"})
-    public void getBookingDetailsById() throws Exception {
-        try{
+    public void getBookingDetailsById() {
+        try {
             // Send get booking request
             Response response = bookingEndpoints.getBookingById(
                     TestContextStore.getContextValueAsInt(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), BOOKING_ID)
@@ -95,4 +95,84 @@ public class BookingTests {
             throw error;
         }
     }
+
+    @Test(groups = {"sanity"}, priority = 4, dependsOnMethods = {"createNewBooking"})
+    public void updateBookingDetailsById() {
+        try {
+            // Send update booking request
+            Response response = bookingEndpoints.updateBookingById(
+                    BookingBuilder.updateBookingRequest(),
+                    TestContextStore.getContextValueAsInt(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), BOOKING_ID),
+                    TestContextStore.getContextValue(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), TOKEN)
+            );
+
+            ApiResponseValidator.assertResponseStatusCode(response, 200);
+            response.prettyPrint(); // format and print response
+
+            logger.info("Update booking successfully");
+
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "updateBookingDetailsById", "Failed to update booking details by id");
+            throw error;
+        }
+    }
+
+    @Test(groups = {"sanity"}, priority = 5, dependsOnMethods = {"createNewBooking"})
+    public void partiallyUpdateBookingDetailsById() {
+        try {
+            // Send partially update booking request
+            Response response = bookingEndpoints.partialUpdateBookingById(
+                    BookingBuilder.partiallyUpdateBookingRequest(),
+                    TestContextStore.getContextValueAsInt(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), BOOKING_ID),
+                    TestContextStore.getContextValue(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), TOKEN)
+            );
+
+            ApiResponseValidator.assertResponseStatusCode(response, 200);
+            response.prettyPrint(); // format and print response
+
+            logger.info("Partially update booking successfully");
+
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "partiallyUpdateBookingDetailsById", "Failed to partially update booking details by id");
+            throw error;
+        }
+    }
+
+    @Test(groups = {"sanity"}, priority = 6, dependsOnMethods = {"createNewBooking"})
+    public void deleteBookingDetailsById() {
+        try {
+            // Send delete booking request
+            Response response = bookingEndpoints.deleteBookingById(
+                    TestContextStore.getContextValueAsInt(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), BOOKING_ID),
+                    TestContextStore.getContextValue(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), TOKEN)
+            );
+
+            ApiResponseValidator.assertResponseStatusCode(response, 201);
+            response.prettyPrint(); // format and print response
+
+            logger.info("Delete booking successfully");
+
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "deleteBookingDetailsById", "Failed to delete booking details by id");
+            throw error;
+        }
+    }
+
+    @Test(groups = {"sanity"}, priority = 7)
+    public void getAllBookings() {
+        try {
+            // Send get all booking request
+            Response response = bookingEndpoints.getAllBooking();
+
+            ApiResponseValidator.assertResponseStatusCode(response, 200);
+            response.prettyPrint(); // format and print response
+
+            logger.info("Get all booking successfully");
+
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "getAllBookings", "Failed to get all booking details by id");
+            throw error;
+        }
+    }
+
 }
