@@ -76,4 +76,23 @@ public class BookingTests {
             throw error;
         }
     }
+
+    @Test(groups = {"sanity"}, priority = 3, dependsOnMethods = {"createNewBooking"})
+    public void getBookingDetailsById() throws Exception {
+        try{
+            // Send get booking request
+            Response response = bookingEndpoints.getBookingById(
+                    TestContextStore.getContextValueAsInt(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), BOOKING_ID)
+            );
+
+            ApiResponseValidator.assertResponseStatusCode(response, 200);
+            response.prettyPrint(); // format and print response
+
+            logger.info("Get booking successfully");
+
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "getBookingDetailsById", "Failed to get booking details by id");
+            throw error;
+        }
+    }
 }
