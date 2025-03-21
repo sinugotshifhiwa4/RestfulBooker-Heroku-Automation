@@ -1,4 +1,4 @@
-package com.restfulbooker.api.payload.payloadBuilder;
+package com.restfulbooker.api.payload.requestBuilder;
 
 import com.restfulbooker.api.payload.payloads.Booking;
 import com.restfulbooker.api.payload.payloads.BookingDates;

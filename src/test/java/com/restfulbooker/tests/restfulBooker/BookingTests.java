@@ -1,8 +1,8 @@
 package com.restfulbooker.tests.restfulBooker;
 
 import com.restfulbooker.api.endpoints.BookingEndpoints;
-import com.restfulbooker.api.payload.payloadBuilder.AuthenticationBuilder;
-import com.restfulbooker.api.payload.payloadBuilder.BookingBuilder;
+import com.restfulbooker.api.payload.requestBuilder.AuthenticationBuilder;
+import com.restfulbooker.api.payload.requestBuilder.BookingBuilder;
 import com.restfulbooker.api.utils.ApiResponseValidator;
 import com.restfulbooker.config.environments.EnvironmentConfigConstants;
 import com.restfulbooker.testDataStorage.TestContextIds;

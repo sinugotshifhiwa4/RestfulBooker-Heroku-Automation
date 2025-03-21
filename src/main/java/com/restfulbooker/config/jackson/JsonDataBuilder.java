@@ -20,7 +20,7 @@ public class JsonDataBuilder {
      * Sets the file path for the JSON file.
      *
      * @param filePath The path to the JSON file
-     * @return This builder instance
+     * @return This requestBuilder instance
      */
     public JsonDataBuilder setFilePath(String filePath) {
         this.filePath = filePath;
@@ -31,7 +31,7 @@ public class JsonDataBuilder {
      * Enables or disables caching.
      *
      * @param cacheEnabled Whether caching is enabled
-     * @return This builder instance
+     * @return This requestBuilder instance
      */
     public JsonDataBuilder setCacheEnabled(boolean cacheEnabled) {
         this.cacheEnabled = cacheEnabled;
@@ -42,7 +42,7 @@ public class JsonDataBuilder {
      * Sets the schema path for JSON validation.
      *
      * @param schemaPath The path to the JSON schema
-     * @return This builder instance
+     * @return This requestBuilder instance
      */
     public JsonDataBuilder setSchemaPath(String schemaPath) {
         this.schemaPath = schemaPath;
