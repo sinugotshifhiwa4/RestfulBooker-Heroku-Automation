@@ -37,6 +37,8 @@ build/
 ### Mac OS ###
 .DS_Store
 
+.idea/
+
 # Ignore logs, envs, reports, and screenshots
 logs/
 envs/
