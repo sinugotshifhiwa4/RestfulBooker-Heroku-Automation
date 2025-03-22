@@ -21,6 +21,8 @@ mvn clean test -Dgroups=uat-encryption
 This requires properly configured environment files with encryption keys and authentication details.
 
 ### Running API Tests
+Before you run sanity, you need to ensure your authentication credentials are encrypted, so you start by creating the `envs` directory or running the generate secret key tests to create them dynamically.
+
 To run API tests, execute:
 ```sh
 mvn clean test -Dgroups=sanity
@@ -57,6 +59,6 @@ AUTH_PASSWORD=your_password
 ```
 Replace values as per your test environment.
 
-## Contact
-For any issues or contributions, feel free to raise a PR or contact me.
+## Links
+- [Detailed API Documentation](https://restful-booker.herokuapp.com/apidoc/index.html)
 
