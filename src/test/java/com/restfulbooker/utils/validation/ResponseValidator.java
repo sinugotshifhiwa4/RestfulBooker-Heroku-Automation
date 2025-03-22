@@ -1,11 +1,10 @@
-package com.restfulbooker.api.utils;
+package com.restfulbooker.utils.validation;
 
 import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.response.Response;
 import org.testng.Assert;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,16 +14,78 @@ import java.util.function.Predicate;
  * Utility class for validating REST API responses.
  * Provides methods for extracting data and asserting various properties of responses.
  */
-public class ApiResponseValidator {
+public class ResponseValidator {
 
     private static final String NULL_RESPONSE_MESSAGE = "Response cannot be null.";
     private static final String NULL_FIELD_MESSAGE = "Field name cannot be null or empty.";
     private static final String NULL_HEADERS_MESSAGE = "Expected headers map cannot be null.";
     private static final String NULL_FIELDS_MESSAGE = "Field names list cannot be null.";
 
-    private ApiResponseValidator() {
+    private ResponseValidator() {
         // Private constructor to prevent instantiation of utility class
     }
+
+    // ===== High-Level Validation Methods =====
+
+    /**
+     * Performs basic validation on an API response
+     *
+     * @param response The API response to validate
+     * @param expectedStatusCode The expected HTTP status code
+     * @param expectedContentType The expected content type
+     * @param maxResponseTime The maximum acceptable response time in milliseconds
+     */
+    public static void validateBasicResponse(Response response, int expectedStatusCode,
+                                             String expectedContentType, long maxResponseTime) {
+        // Status code validation
+        assertResponseStatusCode(response, expectedStatusCode);
+
+        // Content type validation
+        if (expectedContentType != null) {
+            assertContentType(response, expectedContentType);
+        }
+
+        // Performance validation
+        assertResponseTime(response, maxResponseTime);
+    }
+
+    /**
+     * Validates that a field exists and is not null
+     *
+     * @param response The API response
+     * @param fieldPath The JSON path to the field
+     */
+    public static void validateRequiredField(Response response, String fieldPath) {
+        assertFieldPresent(response, fieldPath);
+        assertFieldNotNull(response, fieldPath);
+    }
+
+    /**
+     * Validates multiple required fields in one call
+     *
+     * @param response The API response
+     * @param fieldPaths Array of field paths to validate
+     */
+    public static void validateRequiredFields(Response response, String... fieldPaths) {
+        for (String fieldPath : fieldPaths) {
+            validateRequiredField(response, fieldPath);
+        }
+    }
+
+    /**
+     * Validates a response for error conditions
+     *
+     * @param response The API response
+     * @param expectedStatusCode The expected error status code
+     * @param expectedErrorCode The expected error code
+     * @param expectedErrorMessage The expected error message
+     */
+    public static void validateErrorResponse(Response response, int expectedStatusCode,
+                                             String expectedErrorCode, String expectedErrorMessage) {
+        assertErrorResponse(response, expectedStatusCode, expectedErrorCode, expectedErrorMessage);
+    }
+
+    // ===== Data Extraction Methods =====
 
     /**
      * Extracts a field value from the response JSON.
@@ -104,31 +165,7 @@ public class ApiResponseValidator {
         return list;
     }
 
-    public static List<String> getCreateBookingResponseFields() {
-        return Arrays.asList(
-                "bookingid",
-                "booking.firstname",
-                "booking.lastname",
-                "booking.totalprice",
-                "booking.depositpaid",
-                "booking.bookingdates.checkin",
-                "booking.bookingdates.checkout",
-                "booking.additionalneeds"
-        );
-    }
-
-    public static List<String> getBookingObjectFields() {
-        return Arrays.asList(
-                "firstname",
-                "lastname",
-                "totalprice",
-                "depositpaid",
-                "bookingdates.checkin",
-                "bookingdates.checkout",
-                "additionalneeds"
-        );
-    }
-
+    // ===== Assertion Methods =====
 
     /**
      * Asserts that the response status code matches the expected value.
@@ -212,14 +249,30 @@ public class ApiResponseValidator {
         });
     }
 
+    /**
+     * Asserts that a specific field exists in the response.
+     *
+     * @param response  The REST response
+     * @param fieldPath The JSON path to the field
+     * @throws IllegalArgumentException if response is null
+     */
     public static void assertFieldPresent(Response response, String fieldPath) {
         validateResponse(response);
+        validateFieldName(fieldPath);
+
         Assert.assertNotNull(
                 response.jsonPath().get(fieldPath),
                 String.format("Expected field at path '%s' not found in response", fieldPath)
         );
     }
 
+    /**
+     * Asserts that multiple fields have the expected values.
+     *
+     * @param response       The REST response
+     * @param expectedValues Map of field paths and their expected values
+     * @throws IllegalArgumentException if response or expectedValues is null
+     */
     public static void assertFieldValues(Response response, Map<String, Object> expectedValues) {
         validateResponse(response);
         Objects.requireNonNull(expectedValues, "Expected values map cannot be null");
@@ -275,28 +328,6 @@ public class ApiResponseValidator {
     }
 
     /**
-     * Validates that the response object is not null.
-     *
-     * @param response The REST response to validate
-     * @throws IllegalArgumentException if response is null
-     */
-    private static void validateResponse(Response response) {
-        Objects.requireNonNull(response, NULL_RESPONSE_MESSAGE);
-    }
-
-    /**
-     * Validates that the field name is not null or empty.
-     *
-     * @param fieldName The field name to validate
-     * @throws IllegalArgumentException if fieldName is null or empty
-     */
-    private static void validateFieldName(String fieldName) {
-        if (fieldName == null || fieldName.trim().isEmpty()) {
-            throw new IllegalArgumentException(NULL_FIELD_MESSAGE);
-        }
-    }
-
-    /**
      * Asserts that the response body matches a JSON schema file located in the classpath.
      *
      * @param response   The REST response
@@ -307,14 +338,20 @@ public class ApiResponseValidator {
         validateResponse(response);
         Objects.requireNonNull(schemaPath, "Schema path cannot be null");
 
-        try {
-            InputStream schemaStream = ApiResponseValidator.class.getResourceAsStream(schemaPath);
-            response.then().assertThat().body(JsonSchemaValidator.matchesJsonSchema(schemaStream));
+        try (InputStream schemaStream = ResponseValidator.class.getResourceAsStream(schemaPath)) {
+            response.then().assertThat().body(JsonSchemaValidator.matchesJsonSchema(Objects.requireNonNull(schemaStream)));
         } catch (Exception e) {
             throw new IllegalStateException("Failed to validate schema: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * Asserts that the content type of the response contains the expected value.
+     *
+     * @param response           The REST response
+     * @param expectedContentType The expected content type
+     * @throws IllegalArgumentException if response is null
+     */
     public static void assertContentType(Response response, String expectedContentType) {
         validateResponse(response);
         Objects.requireNonNull(expectedContentType, "Expected content type cannot be null");
@@ -326,7 +363,6 @@ public class ApiResponseValidator {
                         expectedContentType, actualContentType)
         );
     }
-
 
     /**
      * Asserts that the response body contains the expected text.
@@ -558,5 +594,29 @@ public class ApiResponseValidator {
                 responseBody == null || responseBody.isEmpty(),
                 "Response body is empty for a successful request"
         );
+    }
+
+    // ===== Helper Methods =====
+
+    /**
+     * Validates that the response object is not null.
+     *
+     * @param response The REST response to validate
+     * @throws IllegalArgumentException if response is null
+     */
+    private static void validateResponse(Response response) {
+        Objects.requireNonNull(response, NULL_RESPONSE_MESSAGE);
+    }
+
+    /**
+     * Validates that the field name is not null or empty.
+     *
+     * @param fieldName The field name to validate
+     * @throws IllegalArgumentException if fieldName is null or empty
+     */
+    private static void validateFieldName(String fieldName) {
+        if (fieldName == null || fieldName.trim().isEmpty()) {
+            throw new IllegalArgumentException(NULL_FIELD_MESSAGE);
+        }
     }
 }

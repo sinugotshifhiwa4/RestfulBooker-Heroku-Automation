@@ -17,7 +17,6 @@ import java.util.List;
 
 public class EncryptionFlowTests {
 
-    // to run test: mvn clean test -DskipBrowserInitialization=true -Dgroups=uat-encryption
     private static final Logger logger = LoggerUtils.getLogger(EncryptionFlowTests.class);
 
 
@@ -53,27 +52,6 @@ public class EncryptionFlowTests {
 
             );
             logger.info("Encryption process completed");
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "encryptCredentials", "Failed to encrypt credentials");
-            throw error;
-        }
-    }
-
-    @Test(groups = {"uat-encryption"}, priority = 3)
-    public void decryptionCredentials() throws CryptoException {
-        try {
-            // Run Encryption
-            List<String> decryptedCredentials = EnvironmentCryptoManager.decryptEnvironmentVariables(
-                    EnvironmentConfigConstants.Environment.UAT.getDisplayName(),
-                    EnvironmentConfigConstants.EnvironmentFilePath.UAT.getFilename(),
-                    EnvironmentConfigConstants.EnvironmentSecretKey.UAT.getKeyName(),
-                    "AUTHENTICATION_USERNAME", "AUTHENTICATION_PASSWORD"
-            );
-
-            System.out.println("Decrypted UserName: " + decryptedCredentials.get(0));
-            System.out.println("Decrypted Password: " + decryptedCredentials.get(1));
-
-            logger.info("Decryption process completed");
         } catch (Exception error) {
             ErrorHandler.logError(error, "encryptCredentials", "Failed to encrypt credentials");
             throw error;

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+
+    <test verbose="2" preserve-order="true"
+          name="Encryption Tests">
+        <groups>
+            <run>
+                <include name="encryption"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.restfulbooker.tests.encryption.EncryptionFlowTests"/>
+        </classes>
+    </test>
+
+    <test verbose="2" preserve-order="true"
+          name="Restful Booker Sanity Tests">
+        <groups>
+            <run>
+                <include name="sanity"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.restfulbooker.tests.restfulBooker.BookingTests"/>
+        </classes>
+    </test>
+</suite>

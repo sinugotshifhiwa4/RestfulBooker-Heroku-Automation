@@ -104,11 +104,11 @@ package com.restfulbooker.api.payload.requestBuilder;
 import com.restfulbooker.api.endpoints.BookingEndpoints;
 import com.restfulbooker.api.payload.payloads.Booking;
 import com.restfulbooker.api.payload.payloads.BookingDates;
-import com.restfulbooker.api.utils.ApiResponseValidator;
 import com.restfulbooker.config.jackson.JsonMapperConfiguration;
 import com.restfulbooker.testDataStorage.TestContextIds;
 import com.restfulbooker.testDataStorage.TestContextStore;
 import com.restfulbooker.utils.ErrorHandler;
+import com.restfulbooker.utils.validation.ResponseValidator;
 import io.restassured.response.Response;
 import net.datafaker.Faker;
 
@@ -159,7 +159,7 @@ public class BookingBuilder {
             );
 
             Response response = bookingEndpoints.getBookingById(bookingId);
-            ApiResponseValidator.assertResponseStatusCode(response, 200);
+            ResponseValidator.assertResponseStatusCode(response, 200);
 
             // Convert response to Booking object
             return response.as(Booking.class);
