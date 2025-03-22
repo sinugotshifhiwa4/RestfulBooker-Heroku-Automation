@@ -12,8 +12,11 @@ import com.restfulbooker.utils.LoggerUtils;
 import com.restfulbooker.utils.constants.Encryption;
 import io.restassured.response.Response;
 import org.apache.logging.log4j.Logger;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.List;
 
 public class BookingTests {
 
@@ -33,18 +36,21 @@ public class BookingTests {
         try {
             // Send auth request
             Response response = bookingEndpoints.generateAuthenticationToken(
-                    AuthenticationBuilder.createAuthenticationRequest(
-                            EnvironmentConfigConstants.Environment.UAT.getDisplayName(),
+                    AuthenticationBuilder.createAuthenticationRequest(EnvironmentConfigConstants.Environment.UAT.getDisplayName(),
                             EnvironmentConfigConstants.EnvironmentFilePath.UAT.getFilename(),
                             EnvironmentConfigConstants.EnvironmentSecretKey.UAT.getKeyName(),
-                            Encryption.getAuthenticationUsername(), Encryption.getAuthenticationPassword()
-                    )
+                            Encryption.getAuthenticationUsername(), Encryption.getAuthenticationPassword())
             );
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
+            // Add after retrieving token
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 3000); // 3 seconds max
+            ApiResponseValidator.assertFieldPresent(response, TOKEN);
 
             // Store token for future use
             String retrievedToken = ApiResponseValidator.extractResponseField(response, TOKEN, String.class);
+            Assert.assertTrue(retrievedToken.length() > 10, "Token should have sufficient length for security");
             TestContextStore.storeContextValue(TestContextIds.HOTEL_BOOKING_ID_ONE.getTestId(), TOKEN, retrievedToken);
             logger.info("Retrieved token saved");
 
@@ -59,11 +65,21 @@ public class BookingTests {
     public void createNewBooking() {
         try {
             // Send new booking request
-            Response response = bookingEndpoints.createBooking(
-                    BookingBuilder.createBookingRequest()
-            );
+            Response response = bookingEndpoints.createBooking(BookingBuilder.createBookingRequest());
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
+
+            // Validate response schema and content using the method you provided
+            ApiResponseValidator.assertFieldsPresent(response, ApiResponseValidator.getCreateBookingResponseFields());
+
+            // Add after fields validation
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 3000);
+            ApiResponseValidator.assertNumericRange(response, "booking.totalprice", 0, Integer.MAX_VALUE);
+            ApiResponseValidator.assertFieldType(response, "booking.depositpaid", Boolean.class);
+            ApiResponseValidator.assertDateFormat(response, "booking.bookingdates.checkin", "\\d{4}-\\d{2}-\\d{2}");
+            ApiResponseValidator.assertDateFormat(response, "booking.bookingdates.checkout", "\\d{4}-\\d{2}-\\d{2}");
+
 
             // Save Booking Id
             int retrievedBookingId = ApiResponseValidator.extractResponseField(response, BOOKING_ID, Integer.class);
@@ -86,7 +102,24 @@ public class BookingTests {
             );
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
-            response.prettyPrint(); // format and print response
+            response.prettyPrint();
+
+            // Validate response schema and content using the method you provided
+            ApiResponseValidator.assertFieldsPresent(response, ApiResponseValidator.getBookingObjectFields());
+            // Add after fields validation
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 3000);
+            ApiResponseValidator.assertFieldNotNull(response, "firstname");
+            ApiResponseValidator.assertFieldNotNull(response, "lastname");
+            ApiResponseValidator.assertFieldType(response, "totalprice", Integer.class);
+            ApiResponseValidator.assertFieldType(response, "depositpaid", Boolean.class);
+            ApiResponseValidator.assertDateFormat(response, "bookingdates.checkin", "\\d{4}-\\d{2}-\\d{2}");
+            ApiResponseValidator.assertDateFormat(response, "bookingdates.checkout", "\\d{4}-\\d{2}-\\d{2}");
+
+            // Validate checkIn date is before checkout date
+            String checkInDate = ApiResponseValidator.extractResponseField(response, "bookingdates.checkin");
+            String checkOutDate = ApiResponseValidator.extractResponseField(response, "bookingdates.checkout");
+            Assert.assertTrue(checkInDate.compareTo(checkOutDate) < 0, "Checkin date should be before checkout date");
 
             logger.info("Get booking successfully");
 
@@ -107,7 +140,19 @@ public class BookingTests {
             );
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
-            response.prettyPrint(); // format and print response
+
+            // Validate response schema and content using the method you provided
+            ApiResponseValidator.assertFieldsPresent(response, ApiResponseValidator.getBookingObjectFields());
+
+            // Add after fields validation
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 3000);
+            ApiResponseValidator.assertFieldNotNull(response, "firstname");
+            ApiResponseValidator.assertFieldNotNull(response, "lastname");
+            ApiResponseValidator.assertFieldType(response, "totalprice", Integer.class);
+            ApiResponseValidator.assertFieldType(response, "depositpaid", Boolean.class);
+            ApiResponseValidator.assertDateFormat(response, "bookingdates.checkin", "\\d{4}-\\d{2}-\\d{2}");
+            ApiResponseValidator.assertDateFormat(response, "bookingdates.checkout", "\\d{4}-\\d{2}-\\d{2}");
 
             logger.info("Update booking successfully");
 
@@ -128,7 +173,15 @@ public class BookingTests {
             );
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
-            response.prettyPrint(); // format and print response
+
+            // Validate response schema and content using the method you provided
+            ApiResponseValidator.assertFieldsPresent(response, ApiResponseValidator.getBookingObjectFields());
+
+            // Add after fields validation
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 3000);
+            ApiResponseValidator.assertFieldNotNull(response, "firstname");
+            ApiResponseValidator.assertFieldNotNull(response, "lastname");
 
             logger.info("Partially update booking successfully");
 
@@ -148,7 +201,13 @@ public class BookingTests {
             );
 
             ApiResponseValidator.assertResponseStatusCode(response, 201);
-            response.prettyPrint(); // format and print response
+
+            // Add after status code validation
+            ApiResponseValidator.assertBodyContains(response, "Created");
+            ApiResponseValidator.assertContentType(response, "text/plain");
+            ApiResponseValidator.assertResponseTime(response, 3000);
+
+            // create validation that response is Created
 
             logger.info("Delete booking successfully");
 
@@ -165,7 +224,24 @@ public class BookingTests {
             Response response = bookingEndpoints.getAllBooking();
 
             ApiResponseValidator.assertResponseStatusCode(response, 200);
-            response.prettyPrint(); // format and print response
+
+            // Add after status code validation
+            ApiResponseValidator.assertContentType(response, "application/json");
+            ApiResponseValidator.assertResponseTime(response, 5000); // Longer timeout for list operation
+            ApiResponseValidator.assertFieldType(response, "$", List.class);
+
+            // Verify the response contains a list
+            List<?> bookings = response.jsonPath().getList("$");
+            Assert.assertNotNull(bookings, "Bookings list should not be null");
+
+            // Validate at least some basic structure if list is not empty
+            if (!bookings.isEmpty()) {
+                ApiResponseValidator.assertFieldPresent(response, "[0].bookingid");
+            }
+
+            // Validate the response doesn't exceed a reasonable size for performance
+            int maxExpectedItems = 10000; // Adjust based on your API's expected scale
+            Assert.assertTrue(bookings.size() <= maxExpectedItems, "Number of bookings should not exceed reasonable limit");
 
             logger.info("Get all booking successfully");
 

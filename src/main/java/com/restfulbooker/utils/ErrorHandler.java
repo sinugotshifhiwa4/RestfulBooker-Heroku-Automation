@@ -1,6 +1,5 @@
 package com.restfulbooker.utils;
 
-import com.restfulbooker.utils.LoggerUtils;
 import org.apache.logging.log4j.Logger;
 
 public class ErrorHandler {
